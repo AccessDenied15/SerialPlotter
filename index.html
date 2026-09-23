@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inkline - Handwriting Plotter</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="font-library.css" />
+  <link rel="stylesheet" href="jog-controls.css" />
+  <link rel="stylesheet" href="toolpath.css" />
+  <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">i</span><span>INKLINE</span><small>HANDWRITING PLOTTER</small></div>
+      <div class="topbar-actions"><span class="connection-pill"><i></i><span id="connectionText">SIMULATOR READY</span></span><button class="icon-button" id="settingsButton" title="Open settings">&#9881;</button><div class="avatar">JD</div></div>
+    </header>
+
+    <section class="workspace">
+      <aside class="sidebar">
+        <div class="eyebrow">WORKSPACE</div>
+        <nav class="nav-list">
+          <button class="nav-item active" id="composeNav"><span>&#9635;</span> Compose <b>1</b></button>
+          <button class="nav-item" id="fontLibraryNav"><span>&#9638;</span> Font library <b id="fontCount">2</b></button>
+          <button class="nav-item"><span>&#9670;</span> Job history</button>
+        </nav>
+        <div class="sidebar-divider"></div>
+        <div class="eyebrow">DEVICE</div>
+        <div class="device-card">
+          <div class="device-status"><span class="status-dot"></span><strong>Inkline plotter</strong></div>
+          <span class="muted">USB serial / simulator</span>
+          <div class="device-meta"><span>FW 0.8.4</span><span>•</span><span id="deviceState">Idle</span></div>
+          <button class="outline-button full" id="connectButton"><span>&#9679;</span> Connect device</button>
+          <button class="text-button full" id="returnZeroButton">Return pen to zero</button>
+          <div class="jog-control">
+            <div class="jog-heading"><span>MANUAL JOG</span><strong id="jogPosition">X 18.0 / Y 20.0 / Z 0.0</strong></div>
+            <div class="jog-steps"><label>X step<input id="jogStepX" type="number" min="0.1" step="0.1" value="1"></label><label>Y step<input id="jogStepY" type="number" min="0.1" step="0.1" value="1"></label><label>Z step<input id="jogStepZ" type="number" min="0.1" step="0.1" value="1"></label></div>
+            <div class="jog-buttons"><button data-jog-axis="x" data-jog-direction="-1" title="Move X negative">X−</button><button data-jog-axis="x" data-jog-direction="1" title="Move X positive">X+</button><button class="axis-zero-button" data-zero-axis="x" title="Set X zero">Zero X</button><button data-jog-axis="y" data-jog-direction="-1" title="Move Y negative">Y−</button><button data-jog-axis="y" data-jog-direction="1" title="Move Y positive">Y+</button><button class="axis-zero-button" data-zero-axis="y" title="Set Y zero">Zero Y</button><button data-jog-axis="z" data-jog-direction="-1" title="Move Z negative">Z−</button><button data-jog-axis="z" data-jog-direction="1" title="Move Z positive">Z+</button><button class="axis-zero-button" data-zero-axis="z" title="Set Z zero">Zero Z</button></div>
+          </div>
+        </div>
+        <div class="sidebar-footer"><span class="help-mark">?</span><span>Need a hand?</span><a href="#">Open guide</a></div>
+      </aside>
+
+      <section class="content">
+        <div class="content-heading"><div><div class="eyebrow">NEW JOB / 01</div><h1>Put it on paper.</h1><p>Compose a note, choose your voice, and let the plotter do the handwriting.</p></div><div class="job-id">JOB-240923-01 <span class="save-dot">Saved</span></div></div>
+
+        <div class="compose-grid" id="composeGrid">
+          <section class="panel writing-panel">
+            <div class="panel-header"><div><span class="step-number">01</span><div><h2>Your message</h2><p>Write something worth keeping.</p></div></div><span class="character-count"><span id="charCount">0</span> / 600</span></div>
+            <textarea id="messageInput" maxlength="600" placeholder="Dear Maya,&#10;&#10;Meet me where the light hits the kitchen table.&#10;&#10;— J"></textarea>
+            <div class="writing-footer"><span><span class="key-hint">shift</span> + <span class="key-hint">enter</span> for a new line</span><button class="text-button" id="clearButton">Clear</button></div>
+          </section>
+
+          <section class="panel preview-panel">
+            <div class="panel-header"><div><span class="step-number">02</span><div><h2>Paper preview</h2><p>Live approximation of the plotted result.</p></div></div><div class="preview-tools"><button class="small-icon" id="zoomOut">−</button><span id="zoomValue">100%</span><button class="small-icon" id="zoomIn">+</button></div></div>
+            <div class="paper-wrap"><div class="paper" id="paper"><div class="paper-grid"></div><canvas id="previewCanvas"></canvas><span class="zero-marker" id="zeroMarker" hidden></span><span class="paper-label">A5 / 148 × 210 mm</span></div></div>
+            <div class="preview-footer"><span><i class="legend-line"></i> pen path</span><span id="pathEstimate">0 mm estimated</span></div>
+          </section>
+        </div>
+
+        <div class="lower-grid" id="lowerGrid">
+          <section class="panel font-panel">
+            <div class="panel-header"><div><span class="step-number">03</span><div><h2>Your voices</h2><p>Mix up to three fonts for a natural rhythm.</p></div></div><button class="upload-button" id="uploadTrigger"><span>+</span> Add font</button><input id="fontUpload" type="file" accept=".ttf,.otf,.woff,.woff2" multiple hidden></div>
+            <div class="font-list" id="fontList">
+              <div class="font-row selected" data-font="Sunday Letter"><span class="drag-handle">&#8942;&#8942;</span><span class="font-swatch swatch-yellow">Aa</span><div class="font-info"><strong>Sunday Letter</strong><span>Primary voice <em>• 68%</em></span></div><input class="font-range" type="range" min="0" max="100" value="68"><button class="more-button">&#8942;</button></div>
+              <div class="font-row" data-font="Mildly Cursive"><span class="drag-handle">&#8942;&#8942;</span><span class="font-swatch swatch-blue">Aa</span><div class="font-info"><strong>Mildly Cursive</strong><span>Secondary voice <em>• 32%</em></span></div><input class="font-range" type="range" min="0" max="100" value="32"><button class="more-button">&#8942;</button></div>
+            </div>
+            <div class="font-note"><span>i</span> Variation is applied between words and lines, never mid-stroke.</div>
+          </section>
+          <section class="panel settings-panel">
+            <div class="panel-header"><div><span class="step-number">04</span><div><h2>Plot settings</h2><p>Dial in the physical result.</p></div></div></div>
+            <div class="settings-fields"><label>Paper size<select id="paperSize"><option>A5 / 148 × 210 mm</option><option>A4 / 210 × 297 mm</option><option>Letter / 8.5 × 11 in</option></select></label><label>Pen speed <span class="value" id="speedValue">45 mm/s</span><input id="speedRange" type="range" min="10" max="100" value="45"></label><label>Pen lift height <span class="value" id="liftValue">5 mm</span><input id="liftRange" type="range" min="1" max="20" value="5"></label><label>Text size <span class="value" id="textSizeValue">10 mm</span><input id="textSizeRange" type="range" min="3" max="30" step="0.5" value="10"></label><label>Character spacing <span class="value" id="characterSpacingValue">1 mm</span><input id="characterSpacingRange" type="range" min="0" max="10" step="0.5" value="1"></label><label>Line spacing <span class="value" id="lineSpacingValue">5 mm</span><input id="lineSpacingRange" type="range" min="0" max="30" step="0.5" value="5"></label><div class="workspace-fields"><span>Workspace</span><label>X <input id="workspaceWidth" type="number" min="1" step="1" value="200"> mm</label><label>Y <input id="workspaceHeight" type="number" min="1" step="1" value="150"> mm</label></div><label class="travel-toggle"><input id="showTravel" type="checkbox"> Show pen-up travel</label><div class="zero-summary"><span>Writing zero</span><strong id="zeroValue">X 18.0 / Y 20.0 mm</strong><small id="zeroHint">Default page start</small></div><div class="toolpath-status" id="toolpathStatus">Fallback outlines active</div></div>
+          </section>
+        </div>
+
+        <section class="font-library-page" id="fontLibraryPage" hidden>
+          <div class="content-heading library-heading"><div><div class="eyebrow">WORKSPACE / 02</div><h1>Your font library.</h1><p>Upload the handwriting voices you want available when composing a job.</p></div><button class="primary-button" id="libraryUploadButton"><span>+</span> Add fonts</button></div>
+          <div class="library-dropzone" id="libraryDropzone"><span class="dropzone-icon">Aa</span><strong>Drop font files here</strong><span>TTF, OTF, WOFF, or WOFF2. You can add several voices at once.</span><button class="outline-button" id="libraryBrowseButton">Browse files</button><input id="libraryFontUpload" type="file" accept=".ttf,.otf,.woff,.woff2" multiple hidden></div>
+          <div class="library-toolbar"><span><strong id="libraryFontCount">2</strong> voices in your library</span><span class="muted">Use the sliders in Compose to balance variation.</span></div>
+          <div class="library-list" id="libraryList"></div>
+        </section>
+        <footer class="action-bar" id="actionBar"><div class="action-status"><span class="status-dot"></span><span id="actionStatus">Ready to generate toolpath</span></div><div class="action-buttons"><button class="secondary-button" id="gcodeButton"><span>&#8595;</span> View G-code</button><button class="primary-button" id="startButton"><span>&#9654;</span> Start plotting</button></div></footer>
+      </section>
+    </section>
+  </main>
+  <div class="toast" id="toast">Font added to your voice roster.</div>
+  <div class="modal-backdrop" id="gcodeModal"><div class="modal"><div class="modal-heading"><div><div class="eyebrow">TOOLPATH / PREVIEW</div><h2>Generated G-code</h2></div><button class="close-button" id="closeModal">×</button></div><pre id="gcodeOutput"></pre><button class="primary-button full" id="downloadButton">&#8595; Download .gcode</button></div></div>
+  <script src="app.js"></script>
+</body>
+</html>
